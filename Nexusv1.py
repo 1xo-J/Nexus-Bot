@@ -402,12 +402,11 @@ def get_marriage_data(user_id: int, guild_id: int) -> Optional[tuple[int, int, s
 # [NUEVA SECCIÓN] 4.5. FUNCIONES DE UTILIDAD DE INVITACIÓN
 # ----------------------------------------------------
 
-CLIENT_ID_INVITE = "1443693871061008457"  # Mantén tu ID de cliente
-PERMISSION_CODE_INVITE = 8               # Código de permisos (8 = Administrador)
+CLIENT_ID_INVITE = "1443693871061008457"  
+PERMISSION_CODE_INVITE = 2424032374               
 
 def generate_invite_link(client_id: str, permissions: int) -> str:
     """Genera el enlace de invitación para el bot con los permisos especificados."""
-    # CORREGIDO: Usamos el ID y añadimos el scope 'applications.commands' y permisos
     return f"https://discord.com/oauth2/authorize?client_id={client_id}&scope=bot%20applications.commands&permissions={permissions}"
 
 
@@ -421,17 +420,17 @@ async def on_ready():
     print(f'Bot conectado como {bot.user.name} (ID: {bot.user.id})')
     initialize_db()
 
-    # Sincronización automática de comandos slash
+    
     try:
         await bot.tree.sync()
         print("Comandos Slash sincronizados exitosamente.")
     except Exception as e:
         print(f"Error al sincronizar comandos Slash: {e}")
 
-    # Iniciar tareas en bucle
+    
     check_mutes.start()
 
-    # Notificación de inicio
+    
     if OWNER_ID != 1224791534436749354:
         owner = bot.get_user(OWNER_ID)
         if owner:
@@ -498,7 +497,7 @@ async def on_message(message: discord.Message):
     guild_id = message.guild.id
     current_time = time.time()
 
-    # Sistema de XP/Leveling
+    
     xp, level, last_message_time = get_level_data(user_id, guild_id)
 
     if current_time - last_message_time >= XP_COOLDOWN_SECONDS:
@@ -507,7 +506,7 @@ async def on_message(message: discord.Message):
         if leveled_up:
             await message.channel.send(f"🎉 ¡Felicidades, {message.author.mention}! Has alcanzado el Nivel **{new_level}**.")
 
-    # Procesar comandos de prefijo (solo después del manejo de XP)
+
     await bot.process_commands(message)
 
 
@@ -515,8 +514,6 @@ async def on_message(message: discord.Message):
 # 6. COMANDOS DE MÚSICA (PREFIX)
 # ----------------------------------------------------
 
-# Nota: La lógica de comandos de Música puede ser extensa y depender de librerías como `yt-dlp` y `ffmpeg`.
-# Si tienes tu lógica de música, déjala aquí. Si no, usa estos placeholders:
 
 @bot.command(name='play', aliases=['p'])
 async def play(ctx, *, search: str):
@@ -534,7 +531,6 @@ async def skip(ctx):
 # 7. COMANDOS DE MODERACION (SLASH COMMANDS) - Prefijo: mod-
 # ----------------------------------------------------
 
-# [NUEVO] COMANDO DE PREFIJO DE SINCRONIZACION (Necesario para depuracion)
 @bot.command(name='sync')
 async def sync_commands(ctx):
     if ctx.author.id != OWNER_ID:
@@ -758,7 +754,7 @@ async def slash_purge(interaction: discord.Interaction, amount: int):
         await interaction.response.send_message(embed=create_error_embed("Error", "Debes especificar una cantidad entre 1 y 100."), ephemeral=True)
         return
 
-    await interaction.response.defer(ephemeral=True) # Defer para que no caduque la interacción
+    await interaction.response.defer(ephemeral=True) 
 
     deleted = await interaction.channel.purge(limit=amount)
 
@@ -872,7 +868,6 @@ async def marry(ctx, member: discord.Member):
     if str(reaction.emoji) == "✅":
         with closing(sqlite3.connect(DB_NAME)) as conn:
             cursor = conn.cursor()
-            # Almacenar siempre en orden para evitar duplicados
             u1, u2 = sorted([user1_id, user2_id])
             cursor.execute("INSERT INTO marriages (user1_id, user2_id, guild_id, marriage_date) VALUES (?, ?, ?, ?)", 
                            (u1, u2, guild_id, datetime.now().isoformat()))
@@ -918,7 +913,6 @@ async def divorce(ctx):
         await message.clear_reactions()
         return
 
-    # Procesa el divorcio
     with closing(sqlite3.connect(DB_NAME)) as conn:
         cursor = conn.cursor()
         u1, u2 = sorted([user_id, partner_id])
@@ -975,7 +969,6 @@ async def invite_prefix(ctx):
 # 10. COMANDOS DE ECONOMÍA Y NIVELES (PREFIX Y SLASH)
 # ----------------------------------------------------
 
-# --- COMANDOS DE ECONOMÍA (PREFIX) ---
 
 @bot.command(name='balance', aliases=['bal'])
 async def balance(ctx, member: discord.Member = None):
@@ -1079,17 +1072,14 @@ async def slots(ctx, amount: int):
     slot_display = f"| **{' | '.join(results)}** |"
 
     if results[0] == results[1] == results[2]:
-        # Jackpot: 7 veces la apuesta
         winnings = amount * 7
         update_balance(ctx.author.id, ctx.guild.id, winnings)
         embed = create_success_embed("¡JACKPOT! 🎰🎰🎰", f"{slot_display}\n¡Ganaste **{winnings} 💰**! (x7)")
     elif results[0] == results[1] or results[1] == results[2]:
-        # Doble: 2 veces la apuesta
         winnings = amount * 2
         update_balance(ctx.author.id, ctx.guild.id, winnings)
         embed = create_success_embed("¡Doble! 🎰🎰", f"{slot_display}\n¡Ganaste **{winnings} 💰**! (x2)")
     else:
-        # Perdiste
         update_balance(ctx.author.id, ctx.guild.id, -amount)
         embed = create_error_embed("Perdiste 💸", f"{slot_display}\nPerdiste **{amount} 💰**.")
 
@@ -1109,7 +1099,7 @@ async def rob(ctx, member: discord.Member):
         return
 
     last_rob = get_last_action_time(user_id, guild_id, 'rob')
-    cooldown = 2 * 3600 # 2 horas de cooldown
+    cooldown = 2 * 3600 
     current_time = time.time()
 
     if current_time - last_rob < cooldown:
@@ -1124,24 +1114,22 @@ async def rob(ctx, member: discord.Member):
         await ctx.send(embed=create_error_embed("Pobreza", f"{member.display_name} es demasiado pobre para ser robado (necesita al menos 1000 💰)."), delete_after=10)
         return
 
-    set_last_action_time(user_id, guild_id, 'rob') # Aplica cooldown antes del resultado
+    set_last_action_time(user_id, guild_id, 'rob') 
 
-    if random.random() < 0.4: # 40% de probabilidad de éxito
-        rob_amount = int(target_balance * random.uniform(0.1, 0.3)) # Roba entre 10% y 30%
+    if random.random() < 0.4: # 
+        rob_amount = int(target_balance * random.uniform(0.1, 0.3)) 
 
         update_balance(user_id, guild_id, rob_amount)
         update_balance(target_id, guild_id, -rob_amount)
 
         await ctx.send(embed=create_success_embed("¡Robo Exitoso! 😈", f"Le robaste **{rob_amount} 💰** a {member.display_name}. ¡Huye!"))
     else:
-        # Fallo: pierde una multa
         fine = random.randint(100, 500)
         update_balance(user_id, guild_id, -fine)
 
         await ctx.send(embed=create_error_embed("¡Atrapado! 🚨", f"Fuiste atrapado intentando robar a {member.display_name}. Tuviste que pagar una multa de **{fine} 💰**."))
 
-
-# NUEVO CÓDIGO PARA /INVITE 
+ 
 @bot.tree.command(name="invite", description="¡Miau! Consigue el enlace para invitar a este michi a tu servidor.")
 async def invite_slash(interaction: discord.Interaction):
     """Maneja el comando de barra diagonal /invite."""
@@ -1311,9 +1299,9 @@ async def buyrole(ctx, *, role_name: str):
 if __name__ == '__main__':
     TOKEN = os.getenv('DISCORD_TOKEN') 
     if not TOKEN:
-         print("¡ADVERTENCIA! La variable DISCORD_TOKEN no está configurada en Secrets de Replit. El bot no se conectará.")
+         print("¡ADVERTENCIA! La variable DISCORD_TOKEN no está configurada. El bot no se conectará.")
     elif OWNER_ID == 00000000000000:
-        print("¡ADVERTENCIA! Por favor, reemplaza '1224791534436749354' con tu ID de usuario en la línea OWNER_ID.")
+        print("¡ADVERTENCIA! Por favor, reemplaza '00000000000' con tu ID de usuario en la línea OWNER_ID.")
     
 else:
     
@@ -1325,3 +1313,5 @@ else:
         print("ERROR: Token inválido o problema de conexión. Revisa tu Token.")
     except Exception as e:
         print(f"Ocurrió un error inesperado al iniciar el bot: {e}")
+
+#Codigo hecho por ReynDev - lildevreyn
