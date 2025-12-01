@@ -75,6 +75,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
         util_cmds = (
             "`/report <user> <razón>`: Reporta a un usuario.",
+            f"`{prefix}invite`: Genera un enlace de invitación para el bot.",
             "`/admin-setlogs <canal>`: Configura el canal de logs.",
             "`/admin-setmoney <user> <monto>`: Establece el saldo de un usuario (Admin).",
             f"`{prefix}sync`: Sincroniza comandos Slash (Owner)."
