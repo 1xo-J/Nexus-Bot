@@ -23,16 +23,16 @@ class CustomHelpCommand(commands.HelpCommand):
 
     async def send_bot_help(self, mapping):
         ctx = self.context
-        prefix = ctx.prefix
+
+
+        prefix = ctx.prefix 
 
         embed = discord.Embed(
             title="📚 Guía de Comandos del Bot",
-            description=(
-                f"¡Hola! La mayoría de los comandos funcionan con `{prefix}` (ej: `{prefix}ping`) y con `/` (ej: `/ping`).\n"
-                "**Excepciones:** `!sync` solo funciona con prefijo `!`."
-            ),
+            description=f"Aquí está la lista de comandos disponibles. Recuerda usar el prefijo `{prefix}` para los comandos de prefijo (ej: `{prefix}balance`).",
             color=discord.Color.blurple()
         )
+
 
         mod_cmds = (
             "`/mod-ban <user> <razón>`: Banea a un usuario.",
@@ -41,45 +41,48 @@ class CustomHelpCommand(commands.HelpCommand):
             "`/mod-warn <user> <razón>`: Aplica una advertencia.",
             "`/mod-purge <cantidad>`: Borra mensajes del canal."
         )
-        embed.add_field(name="🛡️ Moderación (Solo /)", value='\n'.join(mod_cmds), inline=False)
+        embed.add_field(name="🛡️ Moderación (Slash)", value='\n'.join(mod_cmds), inline=False)
+
 
         eco_cmds = (
-            "`!balance` / `/balance` (`bal`): Muestra tu saldo.",
-            "`!daily` / `/daily`: Reclama tu recompensa diaria.",
-            "`!work` / `/work`: Gana dinero por trabajar.",
-            "`!flip` / `/flip`: Apuesta a cara o cruz.",
-            "`!rank` / `/rank`: Muestra tu nivel y XP.",
-            "`!leaderboard` / `/leaderboard` (`top`): Muestra la tabla de niveles.",
-            "`!shop` / `/shop`: Ve los roles a la venta.",
-            "`!buyrole <rol>` / `/buyrole <rol>`: Compra un rol de la tienda."
+            f"`{prefix}balance` o `{prefix}bal`: Muestra tu saldo.",
+            f"`{prefix}daily`: Reclama tu recompensa diaria.",
+            f"`{prefix}work`: Gana dinero por trabajar.",
+            f"`{prefix}flip <cara|cruz> <monto>`: Apuesta a cara o cruz.",
+            f"`{prefix}shop`: Ve los roles a la venta.",
+            f"`{prefix}buyrole <rol>`: Compra un rol de la tienda.",
+            f"`{prefix}rank`: Muestra tu nivel y XP.",
+            f"`{prefix}leaderboard` o `{prefix}top`: Muestra la tabla de niveles."
         )
-        embed.add_field(name="💰 Economía y Niveles", value='\n'.join(eco_cmds), inline=False)
+        embed.add_field(name="💰 Economía y Niveles (Prefix)", value='\n'.join(eco_cmds), inline=False)
+
 
         marriage_cmds = (
-            "`!marry` / `/marry <user>`: Propone matrimonio.",
-            "`!divorce` / `/divorce`: Inicia el proceso de divorcio.",
-            "`!spouse` / `/spouse`: Muestra con quién estás casado."
+            f"`{prefix}marry <user>`: Propone matrimonio.",
+            f"`{prefix}divorce`: Inicia el proceso de divorcio.",
+            f"`{prefix}spouse`: Muestra con quién estás casado y desde cuándo."
         )
-        embed.add_field(name="❤️ Bodas", value='\n'.join(marriage_cmds), inline=False)
+        embed.add_field(name="❤️ Bodas (Prefix)", value='\n'.join(marriage_cmds), inline=False)
+
 
         music_cmds = (
-            "`!play <canción>` (`p`): Reproduce música.",
-            "`!stop`: Detiene la reproducción y desconecta.",
-            "`!skip` (`s`): Salta la canción actual."
+            f"`{prefix}play <canción>` o `{prefix}p`: Reproduce música.",
+            f"`{prefix}stop`: Detiene la reproducción y desconecta.",
+            f"`{prefix}skip` o `{prefix}s`: Salta la canción actual."
         )
-        embed.add_field(name="🎶 Música (Solo !)", value='\n'.join(music_cmds), inline=False)
+        embed.add_field(name="🎶 Música (Prefix)", value='\n'.join(music_cmds), inline=False)
+
 
         util_cmds = (
             "`/report <user> <razón>`: Reporta a un usuario.",
-            "`!invite` / `/invite`: Genera un enlace de invitación para el bot.",
             "`/admin-setlogs <canal>`: Configura el canal de logs.",
-            "`/admin-panelrol`: Muestra el panel de auto-roles.",
-            "`/admin-setmoney <user> <monto>`: Establece el saldo (Admin).",
-            "`!sync` (Solo !): Sincroniza comandos (Owner)."
+            "`/admin-setmoney <user> <monto>`: Establece el saldo de un usuario (Admin).",
+            f"`{prefix}sync`: Sincroniza comandos Slash (Owner)."
         )
         embed.add_field(name="🛠️ Utilidad / Admin", value='\n'.join(util_cmds), inline=False)
 
-        embed.set_footer(text=f"Prefijo: {prefix} | Desarrollado por ReynDev.")
+        embed.set_footer(text=f"Prefix: {prefix} | Desarrollado ReynDev.")
+
         await ctx.send(embed=embed)
 
 
@@ -528,7 +531,6 @@ async def stop(ctx):
 async def skip(ctx):
     await ctx.send(embed=create_error_embed("Música", "Este es un placeholder. Lógica: Saltar la canción actual."))
 
-
 # ----------------------------------------------------
 # 7. COMANDOS DE MODERACION (SLASH COMMANDS) - Prefijo: mod-
 # ----------------------------------------------------
@@ -836,235 +838,35 @@ async def slash_report(interaction: discord.Interaction, member: discord.Member,
 
 @bot.command(name='marry', description='💍 Propón matrimonio a otro usuario.')
 async def marry(ctx, member: discord.Member):
-    await _propose_marriage(ctx, member)
-
-@bot.command(name='divorce')
-async def divorce(ctx):
-    await _initiate_divorce(ctx)
-
-@bot.command(name='spouse', aliases=['wife', 'husband'])
-async def spouse(ctx):
-    await _show_spouse(ctx)
-
-@bot.tree.command(name='marry', description='💍 Propón matrimonio a otro usuario.')
-@discord.app_commands.describe(member='El usuario al que quieres proponer matrimonio.')
-async def slash_marry(interaction: discord.Interaction, member: discord.Member):
-    await _propose_marriage(interaction, member)
-
-@bot.tree.command(name='divorce', description='💔 Inicia el proceso de divorcio.')
-async def slash_divorce(interaction: discord.Interaction):
-    await _initiate_divorce(interaction)
-
-@bot.tree.command(name='spouse', description='💑 Muestra con quién estás casado.')
-async def slash_spouse(interaction: discord.Interaction):
-    await _show_spouse(interaction)
-
-# ----------------------------------------------------
-# 9.5. HELPER FUNCTIONS FOR COMMANDS
-# ----------------------------------------------------
-
-# --- Economy Helpers ---
-
-def _balance_embed(member: discord.Member) -> discord.Embed:
-    balance = get_balance(member.id, member.guild.id)
-    embed = discord.Embed(
-        title="🏦 Saldo Bancario",
-        description=f"El saldo de **{member.display_name}** es de **{balance} 💰**.",
-        color=discord.Color.gold()
-    )
-    return embed
-
-def _get_daily_reward(user_id: int, guild_id: int) -> discord.Embed:
-    last_daily = get_last_action_time(user_id, guild_id, 'daily')
-    cooldown = ECONOMY_COOLDOWN_DAILY_HOURS * 3600
-    current_time = time.time()
-
-    if current_time - last_daily < cooldown:
-        remaining_seconds = cooldown - (current_time - last_daily)
-        remaining_hours = int(remaining_seconds // 3600)
-        remaining_minutes = int((remaining_seconds % 3600) // 60)
-        return create_error_embed("En Cooldown", f"Debes esperar **{remaining_hours}h {remaining_minutes}m** para reclamar tu próxima recompensa diaria.")
-
-    update_balance(user_id, guild_id, DAILY_REWARD)
-    set_last_action_time(user_id, guild_id, 'daily')
-
-    return create_success_embed("Recompensa Diaria", f"Has reclamado tu recompensa diaria de **{DAILY_REWARD} 💰**.")
-
-def _do_work(user_id: int, guild_id: int) -> discord.Embed:
-    last_work = get_last_action_time(user_id, guild_id, 'work')
-    cooldown = ECONOMY_COOLDOWN_WORK_HOURS * 3600
-    current_time = time.time()
-
-    if current_time - last_work < cooldown:
-        remaining_seconds = cooldown - (current_time - last_work)
-        remaining_hours = int(remaining_seconds // 3600)
-        remaining_minutes = int((remaining_seconds % 3600) // 60)
-        return create_error_embed("En Cooldown", f"Debes esperar **{remaining_hours}h {remaining_minutes}m** para volver a trabajar.")
-
-    earnings = random.randint(100, 300)
-    jobs = ["programar código", "servir café", "pasear perros", "reparar computadoras", "diseñar logos"]
-    job = random.choice(jobs)
-
-    update_balance(user_id, guild_id, earnings)
-    set_last_action_time(user_id, guild_id, 'work')
-
-    return create_success_embed("Trabajo Realizado", f"Fuiste a **{job}** y ganaste **{earnings} 💰**.")
-
-def _flip_coin(user_id: int, guild_id: int, side: str, amount: int) -> discord.Embed:
-    if side not in ['cara', 'cruz']:
-        return create_error_embed("Error", "Elige 'cara' o 'cruz'.")
-    if amount <= 0:
-        return create_error_embed("Error", "La cantidad debe ser positiva.")
-
-    user_balance = get_balance(user_id, guild_id)
-    if user_balance < amount:
-        return create_error_embed("Error", "No tienes suficiente dinero.")
-
-    result = random.choice(['cara', 'cruz'])
-
-    if result == side:
-        update_balance(user_id, guild_id, amount)
-        new_balance = user_balance + amount
-        return create_success_embed("¡Ganaste!", f"Salió **{result}**. ¡Ganaste **{amount} 💰**! Saldo: {new_balance} 💰")
-    else:
-        update_balance(user_id, guild_id, -amount)
-        new_balance = user_balance - amount
-        return create_error_embed("Perdiste", f"Salió **{result}**. Perdiste **{amount} 💰**. Saldo: {new_balance} 💰")
-
-def _play_slots(user_id: int, guild_id: int, amount: int) -> discord.Embed:
-    if amount <= 0:
-        return create_error_embed("Error", "La cantidad debe ser positiva.")
-
-    user_balance = get_balance(user_id, guild_id)
-    if user_balance < amount:
-        return create_error_embed("Error", "No tienes suficiente dinero.")
-
-    emojis = ["🍒", "🍇", "🍋", "7️⃣"]
-    results = [random.choice(emojis) for _ in range(3)]
-
-    slot_display = f"| **{' | '.join(results)}** |"
-
-    if results[0] == results[1] == results[2]:
-        winnings = amount * 7
-        update_balance(user_id, guild_id, winnings)
-        embed = create_success_embed("¡JACKPOT! 🎰🎰🎰", f"{slot_display}\n¡Ganaste **{winnings} 💰**! (x7)")
-    elif results[0] == results[1] or results[1] == results[2]:
-        winnings = amount * 2
-        update_balance(user_id, guild_id, winnings)
-        embed = create_success_embed("¡Doble! 🎰🎰", f"{slot_display}\n¡Ganaste **{winnings} 💰**! (x2)")
-    else:
-        update_balance(user_id, guild_id, -amount)
-        embed = create_error_embed("Perdiste 💸", f"{slot_display}\nPerdiste **{amount} 💰**.")
-
-    new_balance = get_balance(user_id, guild_id)
-    embed.set_footer(text=f"Saldo actual: {new_balance} 💰")
-    return embed
-
-def _rob_member(user_id: int, guild_id: int, target: discord.Member) -> discord.Embed:
-    target_id = target.id
-    if user_id == target_id or target.bot:
-        return create_error_embed("Error", "No puedes robarte a ti mismo o a un bot.")
-
-    last_rob = get_last_action_time(user_id, guild_id, 'rob')
-    cooldown = 2 * 3600 
-    current_time = time.time()
-
-    if current_time - last_rob < cooldown:
-        remaining_seconds = cooldown - (current_time - last_rob)
-        remaining_hours = int(remaining_seconds // 3600)
-        remaining_minutes = int((remaining_seconds % 3600) // 60)
-        return create_error_embed("En Cooldown", f"Debes esperar **{remaining_hours}h {remaining_minutes}m** para volver a robar.")
-
-    target_balance = get_balance(target_id, guild_id)
-    if target_balance < 1000:
-        return create_error_embed("Pobreza", f"{target.display_name} es demasiado pobre para ser robado (necesita al menos 1000 💰).")
-
-    set_last_action_time(user_id, guild_id, 'rob') 
-
-    if random.random() < 0.4: 
-        rob_amount = int(target_balance * random.uniform(0.1, 0.3)) 
-
-        update_balance(user_id, guild_id, rob_amount)
-        update_balance(target_id, guild_id, -rob_amount)
-
-        return create_success_embed("¡Robo Exitoso! 😈", f"Le robaste **{rob_amount} 💰** a {target.display_name}. ¡Huye!")
-    else:
-        fine = random.randint(100, 500)
-        update_balance(user_id, guild_id, -fine)
-
-        return create_error_embed("¡Atrapado! 🚨", f"Fuiste atrapado intentando robar a {target.display_name}. Tuviste que pagar una multa de **{fine} 💰**.")
-
-# --- Leveling Helpers ---
-
-def _get_rank_embed(member: discord.Member) -> discord.Embed:
-    xp, level, _ = get_level_data(member.id, member.guild.id)
-    xp_needed_next = get_xp_needed(level)
-
-    progress = int(xp / xp_needed_next * 10)
-    progress_bar = '🟩' * progress + '⬛' * (10 - progress)
-
-    embed = discord.Embed(
-        title=f"📊 Rango de {member.display_name}",
-        description=f"**Nivel:** {level}\n**XP:** {xp} / {xp_needed_next}\n**Progreso:**\n`{progress_bar}`",
-        color=discord.Color.blue()
-    )
-    embed.set_thumbnail(url=member.display_avatar.url)
-    return embed
-
-def _get_leaderboard_embed(guild: discord.Guild) -> discord.Embed:
-    top_users = get_leaderboard_data(guild.id)
-
-    if not top_users:
-        return create_error_embed("Error", "No hay datos de nivelación para mostrar.")
-async def _propose_marriage(ctx_or_interaction, member: discord.Member):
-    user = ctx_or_interaction.author if isinstance(ctx_or_interaction, commands.Context) else ctx_or_interaction.user
-    user1_id = user.id
+    user1_id = ctx.author.id
     user2_id = member.id
-    guild_id = member.guild.id
+    guild_id = ctx.guild.id
 
     if user1_id == user2_id or member.bot:
-        error_embed = create_error_embed("Error", "No puedes casarte contigo mismo o con un bot.")
-        if isinstance(ctx_or_interaction, commands.Context):
-            await ctx_or_interaction.send(embed=error_embed, delete_after=10)
-        else:
-            await ctx_or_interaction.response.send_message(embed=error_embed, ephemeral=True)
+        await ctx.send(embed=create_error_embed("Error", "No puedes casarte contigo mismo o con un bot."), delete_after=10)
         return
 
     if get_partner(user1_id, guild_id) or get_partner(user2_id, guild_id):
-        error_embed = create_error_embed("Error", "Uno de los usuarios ya está casado.")
-        if isinstance(ctx_or_interaction, commands.Context):
-            await ctx_or_interaction.send(embed=error_embed, delete_after=10)
-        else:
-            await ctx_or_interaction.response.send_message(embed=error_embed, ephemeral=True)
+        await ctx.send(embed=create_error_embed("Error", "Uno de los usuarios ya está casado."), delete_after=10)
         return
 
-    proposal_embed = discord.Embed(
+    embed = discord.Embed(
         title="💍 Propuesta de Matrimonio",
-        description=f"{member.mention}, **{user.display_name}** te ha propuesto matrimonio.\n\nReacciona con **✅** para aceptar o **❌** para rechazar.",
+        description=f"{member.mention}, **{ctx.author.display_name}** te ha propuesto matrimonio.\n\nReacciona con **✅** para aceptar o **❌** para rechazar.",
         color=discord.Color.light_grey()
     )
-    
-    if isinstance(ctx_or_interaction, commands.Context):
-        message = await ctx_or_interaction.send(content=member.mention, embed=proposal_embed)
-    else:
-        await ctx_or_interaction.response.send_message(content=member.mention, embed=proposal_embed)
-        message = await ctx_or_interaction.original_response()
-
+    message = await ctx.send(content=member.mention, embed=embed)
     await message.add_reaction("✅")
     await message.add_reaction("❌")
 
-    def check(reaction, u):
-        return u.id == user2_id and str(reaction.emoji) in ["✅", "❌"] and reaction.message.id == message.id
+    def check(reaction, user):
+        return user.id == user2_id and str(reaction.emoji) in ["✅", "❌"] and reaction.message.id == message.id
 
     try:
-        reaction, _ = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+        reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
     except asyncio.TimeoutError:
-        expired_embed = create_error_embed("Propuesta Expirada", "La propuesta de matrimonio ha expirado.")
-        if isinstance(ctx_or_interaction, commands.Context):
-            await message.edit(embed=expired_embed, content=None)
-            await message.clear_reactions()
-        else:
-            await ctx_or_interaction.edit_original_response(embed=expired_embed, content=None, view=None)
+        await message.edit(embed=create_error_embed("Propuesta Expirada", "La propuesta de matrimonio ha expirado."), content=None)
+        await message.clear_reactions()
         return
 
     if str(reaction.emoji) == "✅":
@@ -1074,244 +876,278 @@ async def _propose_marriage(ctx_or_interaction, member: discord.Member):
             cursor.execute("INSERT INTO marriages (user1_id, user2_id, guild_id, marriage_date) VALUES (?, ?, ?, ?)", 
                            (u1, u2, guild_id, datetime.now().isoformat()))
             conn.commit()
-        
-        success_embed = create_success_embed("¡BODAS!", f"**{user.display_name}** y **{member.display_name}** ¡se han casado! 🎉")
-        if isinstance(ctx_or_interaction, commands.Context):
-            await message.edit(embed=success_embed, content=f"{user.mention} {member.mention}")
-            await message.clear_reactions()
-        else:
-            await ctx_or_interaction.edit_original_response(embed=success_embed, content=f"{user.mention} {member.mention}", view=None)
-    else:
-        rejected_embed = create_error_embed("Propuesta Rechazada", f"**{member.display_name}** ha rechazado la propuesta de matrimonio.")
-        if isinstance(ctx_or_interaction, commands.Context):
-            await message.edit(embed=rejected_embed, content=None)
-            await message.clear_reactions()
-        else:
-            await ctx_or_interaction.edit_original_response(embed=rejected_embed, content=None, view=None)
 
-async def _initiate_divorce(ctx_or_interaction):
-    user = ctx_or_interaction.author if isinstance(ctx_or_interaction, commands.Context) else ctx_or_interaction.user
-    guild_id = user.guild.id
-    partner_id = get_partner(user.id, guild_id)
+        await message.edit(embed=create_success_embed("¡BODAS!", f"**{ctx.author.display_name}** y **{member.display_name}** ¡se han casado! 🎉"), content=f"{ctx.author.mention} {member.mention}")
+        await message.clear_reactions()
+    else:
+        await message.edit(embed=create_error_embed("Propuesta Rechazada", f"**{member.display_name}** ha rechazado la propuesta de matrimonio."), content=None)
+        await message.clear_reactions()
+
+@bot.command(name='divorce')
+async def divorce(ctx):
+    user_id = ctx.author.id
+    guild_id = ctx.guild.id
+    partner_id = get_partner(user_id, guild_id)
 
     if not partner_id:
-        error_embed = create_error_embed("Error", "No estás casado con nadie.")
-        if isinstance(ctx_or_interaction, commands.Context):
-            await ctx_or_interaction.send(embed=error_embed, delete_after=10)
-        else:
-            await ctx_or_interaction.response.send_message(embed=error_embed, ephemeral=True)
+        await ctx.send(embed=create_error_embed("Error", "No estás casado con nadie."), delete_after=10)
         return
 
-    partner = user.guild.get_member(partner_id)
-    partner_name = partner.display_name if partner else f"Usuario con ID {partner_id}"
+    partner = ctx.guild.get_member(partner_id)
+    if not partner:
+        partner_name = f"Usuario con ID {partner_id}"
+    else:
+        partner_name = partner.display_name
 
-    divorce_embed = discord.Embed(
+    embed = discord.Embed(
         title="💔 Solicitud de Divorcio",
         description=f"¿Estás seguro de que quieres divorciarte de **{partner_name}**?\n\nReacciona con **💔** para confirmar el divorcio.",
         color=discord.Color.red()
     )
-    
-    if isinstance(ctx_or_interaction, commands.Context):
-        message = await ctx_or_interaction.send(embed=divorce_embed)
-    else:
-        await ctx_or_interaction.response.send_message(embed=divorce_embed)
-        message = await ctx_or_interaction.original_response()
-
+    message = await ctx.send(embed=embed)
     await message.add_reaction("💔")
 
-    def check(reaction, u):
-        return u.id == user.id and str(reaction.emoji) == "💔" and reaction.message.id == message.id
+    def check(reaction, user):
+        return user.id == user_id and str(reaction.emoji) == "💔" and reaction.message.id == message.id
 
     try:
         await bot.wait_for('reaction_add', timeout=20.0, check=check)
     except asyncio.TimeoutError:
-        expired_embed = create_error_embed("Confirmación Expirada", "La solicitud de divorcio ha expirado.")
-        if isinstance(ctx_or_interaction, commands.Context):
-            await message.edit(embed=expired_embed, content=None)
-            await message.clear_reactions()
-        else:
-            await ctx_or_interaction.edit_original_response(embed=expired_embed, content=None, view=None)
+        await message.edit(embed=create_error_embed("Confirmación Expirada", "La solicitud de divorcio ha expirado."), content=None)
+        await message.clear_reactions()
         return
 
     with closing(sqlite3.connect(DB_NAME)) as conn:
         cursor = conn.cursor()
-        u1, u2 = sorted([user.id, partner_id])
+        u1, u2 = sorted([user_id, partner_id])
         cursor.execute("DELETE FROM marriages WHERE user1_id = ? AND user2_id = ? AND guild_id = ?", (u1, u2, guild_id))
         conn.commit()
 
-    success_embed = create_success_embed("Divorcio Consumado", f"**{user.display_name}** se ha divorciado de **{partner_name}**. ¡Libertad!")
-    if isinstance(ctx_or_interaction, commands.Context):
-        await message.edit(embed=success_embed, content=None)
-        await message.clear_reactions()
-    else:
-        await ctx_or_interaction.edit_original_response(embed=success_embed, content=None, view=None)
+    await message.edit(embed=create_success_embed("Divorcio Consumado", f"**{ctx.author.display_name}** se ha divorciado de **{partner_name}**. ¡Libertad!"), content=None)
+    await message.clear_reactions()
 
-async def _show_spouse(ctx_or_interaction):
-    user = ctx_or_interaction.author if isinstance(ctx_or_interaction, commands.Context) else ctx_or_interaction.user
-    guild_id = user.guild.id
-    data = get_marriage_data(user.id, guild_id)
+@bot.command(name='spouse', aliases=['wife', 'husband'])
+async def spouse(ctx):
+    user_id = ctx.author.id
+    guild_id = ctx.guild.id
+    data = get_marriage_data(user_id, guild_id)
 
     if not data:
-        error_embed = create_error_embed("Matrimonio", "No estás casado con nadie.")
-        if isinstance(ctx_or_interaction, commands.Context):
-            await ctx_or_interaction.send(embed=error_embed, delete_after=10)
-        else:
-            await ctx_or_interaction.response.send_message(embed=error_embed, ephemeral=True)
+        await ctx.send(embed=create_error_embed("Matrimonio", "No estás casado con nadie."), delete_after=10)
         return
 
     user1_id, user2_id, date_str = data
-    partner_id = user2_id if user1_id == user.id else user1_id
-    partner = user.guild.get_member(partner_id)
+    partner_id = user2_id if user1_id == user_id else user1_id
+    partner = ctx.guild.get_member(partner_id)
     partner_name = partner.display_name if partner else f"ID: {partner_id}"
 
     marriage_date = datetime.fromisoformat(date_str).strftime("%d de %B de %Y")
 
-    spouse_embed = discord.Embed(
-        title=f"❤️ Matrimonio de {user.display_name}",
+    embed = discord.Embed(
+        title=f"❤️ Matrimonio de {ctx.author.display_name}",
         description=f"Estás casado(a) con **{partner_name}**.",
         color=discord.Color.red()
     )
-    spouse_embed.add_field(name="Fecha de Aniversario", value=marriage_date, inline=False)
+    embed.add_field(name="Fecha de Aniversario", value=marriage_date, inline=False)
+
+    await ctx.send(embed=embed)
+
+
+@bot.command(name="invite", help="¡Miau! Consigue el enlace para invitar a este michi a tu servidor.")
+async def invite_prefix(ctx):
+    """Maneja el comando de prefijo !invite."""
+
+    invite_url = generate_invite_link(CLIENT_ID_INVITE, PERMISSION_CODE_INVITE)
+
+    embed = discord.Embed(
+        title="🎀 ¡Hora de Jugar! Invítame a tu Servidor",
+        description=f"¡Miau! Soy un gatito muy útil. Haz clic en este enlace para adoptarme y que juegue en tu casa. ¡Te prometo muchos comandos y ronroneos!\n\n**[Invitar a {ctx.bot.user.name} 🐾]({invite_url})**",
+        color=discord.Color.from_rgb(173, 216, 230) 
+    )
+    embed.set_thumbnail(url=ctx.bot.user.display_avatar.url)
+
     
-    if isinstance(ctx_or_interaction, commands.Context):
-        await ctx_or_interaction.send(embed=spouse_embed)
-    else:
-        await ctx_or_interaction.response.send_message(embed=spouse_embed)
-
-# --- Shop Helpers ---
-
-def _shop_embed(guild: discord.Guild) -> discord.Embed:
-    shop_roles = get_shop_roles(guild.id)
-
-    if not shop_roles:
-        return create_error_embed("Tienda Vacía", "No hay roles a la venta en este momento.")
-
-    description = []
-    for role_id, price in shop_roles:
-        role = guild.get_role(role_id)
-        if role:
-            description.append(f"**{role.name}** ➡️ **{price} 💰**")
-
-    embed = discord.Embed(
-        title="🛍️ Tienda de Roles",
-        description='\n'.join(description) + "\n\nUsa `/buyrole <NombreDelRol>` o `!buyrole <NombreDelRol>` para comprar.",
-        color=discord.Color.blue()
-    )
-    return embed
-
-async def _buy_role_helper(user: discord.Member, role_name: str) -> discord.Embed:
-    role_name = role_name.strip()
-    shop_roles = get_shop_roles(user.guild.id)
-
-    role_to_buy = None
-    price = 0
-
-    for role_id, p in shop_roles:
-        role = user.guild.get_role(role_id)
-        if role and role.name.lower() == role_name.lower():
-            role_to_buy = role
-            price = p
-            break
-
-    if not role_to_buy:
-        return create_error_embed("Error", f"El rol **{role_name}** no está a la venta.")
-
-    if role_to_buy in user.roles:
-        return create_error_embed("Error", f"Ya tienes el rol **{role_to_buy.name}**.")
-
-    user_balance = get_balance(user.id, user.guild.id)
-    if user_balance < price:
-        return create_error_embed("Error", f"No tienes suficiente dinero. Necesitas **{price} 💰**.")
-
-    try:
-        update_balance(user.id, user.guild.id, -price)
-        await user.add_roles(role_to_buy, reason="Compra de rol en la tienda.")
-        new_balance = get_balance(user.id, user.guild.id)
-
-        return create_success_embed("Compra Exitosa", f"Has comprado el rol **{role_to_buy.name}** por **{price} 💰**. Saldo restante: {new_balance} 💰")
-    except discord.Forbidden:
-        return create_error_embed("Error de Permisos", "No puedo darte ese rol (puede que el rol esté por encima del mío).")
-    description = []
-    for i, (user_id, xp, level) in enumerate(top_users):
-        member = guild.get_member(user_id)
-        name = member.display_name if member else f"Usuario Desconocido (ID: {user_id})"
-
-        rank_emoji = ""
-        if i == 0: rank_emoji = "🥇"
-        elif i == 1: rank_emoji = "🥈"
-        elif i == 2: rank_emoji = "🥉"
-        else: rank_emoji = f"**#{i+1}**"
-
-        description.append(f"{rank_emoji} **{name}** - Nivel **{level}** ({xp} XP)")
-
-    embed = discord.Embed(
-        title="🏆 Tabla de Clasificación del Servidor",
-        description='\n'.join(description),
-        color=discord.Color.gold()
-    )
-    return embed
+    await ctx.send(embed=embed)
 
 # ----------------------------------------------------
 # 10. COMANDOS DE ECONOMÍA Y NIVELES (PREFIX Y SLASH)
 # ----------------------------------------------------
 
+
 @bot.command(name='balance', aliases=['bal'])
 async def balance(ctx, member: discord.Member = None):
     member = member or ctx.author
-    await ctx.send(embed=_balance_embed(member))
-
-@bot.command(name='daily')
-async def daily(ctx):
-    embed = _get_daily_reward(ctx.author.id, ctx.guild.id)
-    is_error = "❌" in embed.title
-    await ctx.send(embed=embed, delete_after=10 if is_error else None)
-
-@bot.command(name='work')
-async def work(ctx):
-    embed = _do_work(ctx.author.id, ctx.guild.id)
-    is_error = "❌" in embed.title
-    await ctx.send(embed=embed, delete_after=10 if is_error else None)
-
-@bot.command(name='flip')
-async def flip(ctx, side: str, amount: int):
-    embed = _flip_coin(ctx.author.id, ctx.guild.id, side.lower(), amount)
-    is_error = "❌" in embed.title
-    await ctx.send(embed=embed, delete_after=10 if is_error else None)
-
-@bot.command(name='slots')
-async def slots(ctx, amount: int):
-    embed = _play_slots(ctx.author.id, ctx.guild.id, amount)
-    is_error = "❌" in embed.title
-    await ctx.send(embed=embed, delete_after=10 if is_error else None)
-
-@bot.command(name='rob')
-async def rob(ctx, member: discord.Member):
-    embed = _rob_member(ctx.author.id, ctx.guild.id, member)
-    is_error = "❌" in embed.title
-    await ctx.send(embed=embed, delete_after=10 if is_error else None)
-def _create_invite_embed(user: discord.User, bot_user: discord.ClientUser) -> discord.Embed:
-    """Crea el embed de invitación."""
-    invite_url = generate_invite_link(CLIENT_ID_INVITE, PERMISSION_CODE_INVITE)
+    balance = get_balance(member.id, ctx.guild.id)
     embed = discord.Embed(
-        title="🐾 ¡Adóptame! Enlace de Invitación",
-        description=f"**{user.display_name}**, este michi necesita un hogar en tu servidor. ¡Haz clic en el botón para traerme!\n\n**[Invitación de Nexus Bot 🐱]({invite_url})**",
-        color=discord.Color.from_rgb(255, 192, 203)
+        title="🏦 Saldo Bancario",
+        description=f"El saldo de **{member.display_name}** es de **{balance} 💰**.",
+        color=discord.Color.gold()
     )
-    embed.set_thumbnail(url=bot_user.display_avatar.url)
-    embed.set_footer(text="Gracias por querer a este gatito 💖")
-    return embed
- 
-@bot.command(name='invite')
-async def invite_prefix(ctx):
-    """Maneja el comando de prefijo !invite."""
-    embed = _create_invite_embed(ctx.author, bot.user)
     await ctx.send(embed=embed)
 
 
+@bot.command(name='daily')
+async def daily(ctx):
+    user_id = ctx.author.id
+    guild_id = ctx.guild.id
+    last_daily = get_last_action_time(user_id, guild_id, 'daily')
+    cooldown = ECONOMY_COOLDOWN_DAILY_HOURS * 3600
+    current_time = time.time()
+
+    if current_time - last_daily < cooldown:
+        remaining_seconds = cooldown - (current_time - last_daily)
+        remaining_hours = int(remaining_seconds // 3600)
+        remaining_minutes = int((remaining_seconds % 3600) // 60)
+        await ctx.send(embed=create_error_embed("En Cooldown", f"Debes esperar **{remaining_hours}h {remaining_minutes}m** para reclamar tu próxima recompensa diaria."), delete_after=10)
+        return
+
+    update_balance(user_id, guild_id, DAILY_REWARD)
+    set_last_action_time(user_id, guild_id, 'daily')
+
+    await ctx.send(embed=create_success_embed("Recompensa Diaria", f"Has reclamado tu recompensa diaria de **{DAILY_REWARD} 💰**."))
+
+
+@bot.command(name='work')
+async def work(ctx):
+    user_id = ctx.author.id
+    guild_id = ctx.guild.id
+    last_work = get_last_action_time(user_id, guild_id, 'work')
+    cooldown = ECONOMY_COOLDOWN_WORK_HOURS * 3600
+    current_time = time.time()
+
+    if current_time - last_work < cooldown:
+        remaining_seconds = cooldown - (current_time - last_work)
+        remaining_hours = int(remaining_seconds // 3600)
+        remaining_minutes = int((remaining_seconds % 3600) // 60)
+        await ctx.send(embed=create_error_embed("En Cooldown", f"Debes esperar **{remaining_hours}h {remaining_minutes}m** para volver a trabajar."), delete_after=10)
+        return
+
+    earnings = random.randint(100, 300)
+    jobs = ["programar código", "servir café", "pasear perros", "reparar computadoras", "diseñar logos"]
+    job = random.choice(jobs)
+
+    update_balance(user_id, guild_id, earnings)
+    set_last_action_time(user_id, guild_id, 'work')
+
+    await ctx.send(embed=create_success_embed("Trabajo Realizado", f"Fuiste a **{job}** y ganaste **{earnings} 💰**."))
+
+
+@bot.command(name='flip')
+async def flip(ctx, side: str, amount: int):
+    side = side.lower()
+    if side not in ['cara', 'cruz']:
+        await ctx.send(embed=create_error_embed("Error", "Elige 'cara' o 'cruz'."), delete_after=10)
+        return
+    if amount <= 0:
+        await ctx.send(embed=create_error_embed("Error", "La cantidad debe ser positiva."), delete_after=10)
+        return
+
+    user_balance = get_balance(ctx.author.id, ctx.guild.id)
+    if user_balance < amount:
+        await ctx.send(embed=create_error_embed("Error", "No tienes suficiente dinero."), delete_after=10)
+        return
+
+    result = random.choice(['cara', 'cruz'])
+
+    if result == side:
+        update_balance(ctx.author.id, ctx.guild.id, amount)
+        new_balance = user_balance + amount
+        await ctx.send(embed=create_success_embed("¡Ganaste!", f"Salió **{result}**. ¡Ganaste **{amount} 💰**! Saldo: {new_balance} 💰"))
+    else:
+        update_balance(ctx.author.id, ctx.guild.id, -amount)
+        new_balance = user_balance - amount
+        await ctx.send(embed=create_error_embed("Perdiste", f"Salió **{result}**. Perdiste **{amount} 💰**. Saldo: {new_balance} 💰"))
+
+
+@bot.command(name='slots')
+async def slots(ctx, amount: int):
+    if amount <= 0:
+        await ctx.send(embed=create_error_embed("Error", "La cantidad debe ser positiva."), delete_after=10)
+        return
+
+    user_balance = get_balance(ctx.author.id, ctx.guild.id)
+    if user_balance < amount:
+        await ctx.send(embed=create_error_embed("Error", "No tienes suficiente dinero."), delete_after=10)
+        return
+
+    emojis = ["🍒", "🍇", "🍋", "7️⃣"]
+    results = [random.choice(emojis) for _ in range(3)]
+
+    slot_display = f"| **{' | '.join(results)}** |"
+
+    if results[0] == results[1] == results[2]:
+        winnings = amount * 7
+        update_balance(ctx.author.id, ctx.guild.id, winnings)
+        embed = create_success_embed("¡JACKPOT! 🎰🎰🎰", f"{slot_display}\n¡Ganaste **{winnings} 💰**! (x7)")
+    elif results[0] == results[1] or results[1] == results[2]:
+        winnings = amount * 2
+        update_balance(ctx.author.id, ctx.guild.id, winnings)
+        embed = create_success_embed("¡Doble! 🎰🎰", f"{slot_display}\n¡Ganaste **{winnings} 💰**! (x2)")
+    else:
+        update_balance(ctx.author.id, ctx.guild.id, -amount)
+        embed = create_error_embed("Perdiste 💸", f"{slot_display}\nPerdiste **{amount} 💰**.")
+
+    new_balance = get_balance(ctx.author.id, ctx.guild.id)
+    embed.set_footer(text=f"Saldo actual: {new_balance} 💰")
+    await ctx.send(embed=embed)
+
+
+@bot.command(name='rob')
+async def rob(ctx, member: discord.Member):
+    user_id = ctx.author.id
+    guild_id = ctx.guild.id
+    target_id = member.id
+
+    if user_id == target_id or member.bot:
+        await ctx.send(embed=create_error_embed("Error", "No puedes robarte a ti mismo o a un bot."), delete_after=10)
+        return
+
+    last_rob = get_last_action_time(user_id, guild_id, 'rob')
+    cooldown = 2 * 3600 
+    current_time = time.time()
+
+    if current_time - last_rob < cooldown:
+        remaining_seconds = cooldown - (current_time - last_rob)
+        remaining_hours = int(remaining_seconds // 3600)
+        remaining_minutes = int((remaining_seconds % 3600) // 60)
+        await ctx.send(embed=create_error_embed("En Cooldown", f"Debes esperar **{remaining_hours}h {remaining_minutes}m** para volver a robar."), delete_after=10)
+        return
+
+    target_balance = get_balance(target_id, guild_id)
+    if target_balance < 1000:
+        await ctx.send(embed=create_error_embed("Pobreza", f"{member.display_name} es demasiado pobre para ser robado (necesita al menos 1000 💰)."), delete_after=10)
+        return
+
+    set_last_action_time(user_id, guild_id, 'rob') 
+
+    if random.random() < 0.4: # 
+        rob_amount = int(target_balance * random.uniform(0.1, 0.3)) 
+
+        update_balance(user_id, guild_id, rob_amount)
+        update_balance(target_id, guild_id, -rob_amount)
+
+        await ctx.send(embed=create_success_embed("¡Robo Exitoso! 😈", f"Le robaste **{rob_amount} 💰** a {member.display_name}. ¡Huye!"))
+    else:
+        fine = random.randint(100, 500)
+        update_balance(user_id, guild_id, -fine)
+
+        await ctx.send(embed=create_error_embed("¡Atrapado! 🚨", f"Fuiste atrapado intentando robar a {member.display_name}. Tuviste que pagar una multa de **{fine} 💰**."))
+
+ 
 @bot.tree.command(name="invite", description="¡Miau! Consigue el enlace para invitar a este michi a tu servidor.")
 async def invite_slash(interaction: discord.Interaction):
     """Maneja el comando de barra diagonal /invite."""
-    embed = _create_invite_embed(interaction.user, bot.user)
+
+    invite_url = generate_invite_link(CLIENT_ID_INVITE, PERMISSION_CODE_INVITE)
+
+    embed = discord.Embed(
+        title="🐾 ¡Adóptame! Enlace de Invitación",
+        description=f"**{interaction.user.display_name}**, este michi necesita un hogar en tu servidor. ¡Haz clic en el botón para traerme!\n\n**[Invitación de Nexus Bot 🐱]({invite_url})**",
+        color=discord.Color.from_rgb(255, 192, 203) 
+    )
+    embed.set_thumbnail(url=interaction.client.user.display_avatar.url)
+    embed.set_footer(text="Gracias por querer a este gatito 💖")
+
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
@@ -1329,71 +1165,46 @@ def get_leaderboard_data(guild_id):
 @bot.command(name='rank')
 async def rank(ctx, member: discord.Member = None):
     member = member or ctx.author
-    await ctx.send(embed=_get_rank_embed(member))
+    xp, level, _ = get_level_data(member.id, ctx.guild.id)
+    xp_needed_next = get_xp_needed(level)
+
+    embed = discord.Embed(
+        title=f"📊 Rango de {member.display_name}",
+        description=f"**Nivel Actual:** {level}\n**XP:** {xp}/{xp_needed_next}\n**Progreso:** {'█' * int(xp * 10 / xp_needed_next)}",
+        color=discord.Color.blue()
+    )
+    embed.set_thumbnail(url=member.display_avatar.url)
+    await ctx.send(embed=embed)
 
 
 @bot.command(name='leaderboard', aliases=['top'])
 async def leaderboard(ctx):
-    embed = _get_leaderboard_embed(ctx.guild)
-    is_error = "❌" in embed.title
-    await ctx.send(embed=embed, delete_after=10 if is_error else None)
+    top_users = get_leaderboard_data(ctx.guild.id)
 
-@bot.tree.command(name='balance', description='💰 Muestra tu saldo o el de otro usuario.')
-@discord.app_commands.describe(member='El usuario cuyo saldo quieres ver (opcional).')
-async def slash_balance(interaction: discord.Interaction, member: Optional[discord.Member] = None):
-    target_member = member or interaction.user
-    await interaction.response.send_message(embed=_balance_embed(target_member))
+    if not top_users:
+        await ctx.send(embed=create_error_embed("Error", "No hay datos de nivelación para mostrar."), delete_after=10)
+        return
 
-@bot.tree.command(name='daily', description='🎁 Reclama tu recompensa diaria.')
-async def slash_daily(interaction: discord.Interaction):
-    embed = _get_daily_reward(interaction.user.id, interaction.guild.id)
-    is_error = "❌" in embed.title
-    await interaction.response.send_message(embed=embed, ephemeral=is_error)
+    description = []
+    for i, (user_id, xp, level) in enumerate(top_users):
+        member = ctx.guild.get_member(user_id)
+        name = member.display_name if member else f"ID: {user_id}"
 
-@bot.tree.command(name='work', description='💪 Trabaja para ganar dinero.')
-async def slash_work(interaction: discord.Interaction):
-    embed = _do_work(interaction.user.id, interaction.guild.id)
-    is_error = "❌" in embed.title
-    await interaction.response.send_message(embed=embed, ephemeral=is_error)
+        rank_emoji = ""
+        if i == 0: rank_emoji = "🥇"
+        elif i == 1: rank_emoji = "🥈"
+        elif i == 2: rank_emoji = "🥉"
+        else: rank_emoji = f"#{i+1}"
 
-@bot.tree.command(name='flip', description='🪙 Apuesta a cara o cruz.')
-@discord.app_commands.describe(side='La cara de la moneda que eliges.', amount='La cantidad de dinero a apostar.')
-@discord.app_commands.choices(side=[
-    discord.app_commands.Choice(name='Cara', value='cara'),
-    discord.app_commands.Choice(name='Cruz', value='cruz')
-])
-async def slash_flip(interaction: discord.Interaction, side: str, amount: int):
-    embed = _flip_coin(interaction.user.id, interaction.guild.id, side, amount)
-    is_error = "❌" in embed.title
-    await interaction.response.send_message(embed=embed, ephemeral=is_error)
+        description.append(f"{rank_emoji} **{name}** - Nivel **{level}** (XP: {xp})")
 
+    embed = discord.Embed(
+        title="🏆 Tabla de Clasificación (Niveles)",
+        description='\n'.join(description),
+        color=discord.Color.gold()
+    )
+    await ctx.send(embed=embed)
 
-@bot.tree.command(name='slots', description='🎰 Juega a las tragaperras.')
-@discord.app_commands.describe(amount='La cantidad de dinero a apostar.')
-async def slash_slots(interaction: discord.Interaction, amount: int):
-    embed = _play_slots(interaction.user.id, interaction.guild.id, amount)
-    is_error = "❌" in embed.title
-    await interaction.response.send_message(embed=embed, ephemeral=is_error)
-
-
-@bot.tree.command(name='rob', description='😈 Intenta robar dinero a otro usuario.')
-@discord.app_commands.describe(member='El usuario al que quieres robar.')
-async def slash_rob(interaction: discord.Interaction, member: discord.Member):
-    embed = _rob_member(interaction.user.id, interaction.guild.id, member)
-    is_error = "❌" in embed.title
-    await interaction.response.send_message(embed=embed, ephemeral=is_error)
-
-@bot.tree.command(name='rank', description='📊 Muestra tu nivel y XP o el de otro usuario.')
-@discord.app_commands.describe(member='El usuario cuyo rango quieres ver (opcional).')
-async def slash_rank(interaction: discord.Interaction, member: Optional[discord.Member] = None):
-    target_member = member or interaction.user
-    await interaction.response.send_message(embed=_get_rank_embed(target_member))
-
-@bot.tree.command(name='leaderboard', description='🏆 Muestra la tabla de clasificación de niveles.')
-async def slash_leaderboard(interaction: discord.Interaction):
-    embed = _get_leaderboard_embed(interaction.guild)
-    is_error = "❌" in embed.title
-    await interaction.response.send_message(embed=embed, ephemeral=is_error)
 
 # --- COMANDOS DE ADMIN DE ECONOMÍA (SLASH) ---
 @bot.tree.command(name='admin-setmoney', description='💰 Establece el saldo de un usuario.')
@@ -1427,30 +1238,63 @@ async def slash_addshoprole(interaction: discord.Interaction, role: discord.Role
 
 @bot.command(name='shop')
 async def shop(ctx):
-    embed = _shop_embed(ctx.guild)
-    is_error = "❌" in embed.title
-    await ctx.send(embed=embed, delete_after=10 if is_error else None)
+    shop_roles = get_shop_roles(ctx.guild.id)
+
+    if not shop_roles:
+        await ctx.send(embed=create_error_embed("Tienda Vacía", "No hay roles a la venta en este momento."), delete_after=10)
+        return
+
+    description = []
+    for role_id, price in shop_roles:
+        role = ctx.guild.get_role(role_id)
+        if role:
+            description.append(f"**{role.name}** ➡️ **{price} 💰**")
+
+    embed = discord.Embed(
+        title="🛍️ Tienda de Roles",
+        description='\n'.join(description) + "\n\nUsa `!buyrole <NombreDelRol>` para comprar.",
+        color=discord.Color.blue()
+    )
+    await ctx.send(embed=embed)
 
 
 @bot.command(name='buyrole')
 async def buyrole(ctx, *, role_name: str):
-    embed = await _buy_role_helper(ctx.author, role_name)
-    is_error = "❌" in embed.title
-    await ctx.send(embed=embed, delete_after=10 if is_error else None)
+    role_name = role_name.strip()
+    shop_roles = get_shop_roles(ctx.guild.id)
 
+    role_to_buy = None
+    price = 0
 
-@bot.tree.command(name='shop', description='🛍️ Muestra la tienda de roles.')
-async def slash_shop(interaction: discord.Interaction):
-    embed = _shop_embed(interaction.guild)
-    is_error = "❌" in embed.title
-    await interaction.response.send_message(embed=embed, ephemeral=is_error)
+    for role_id, p in shop_roles:
+        role = ctx.guild.get_role(role_id)
+        if role and role.name.lower() == role_name.lower():
+            role_to_buy = role
+            price = p
+            break
 
-@bot.tree.command(name='buyrole', description='💸 Compra un rol de la tienda.')
-@discord.app_commands.describe(role_name='El nombre del rol que quieres comprar.')
-async def slash_buyrole(interaction: discord.Interaction, role_name: str):
-    embed = await _buy_role_helper(interaction.user, role_name)
-    is_error = "❌" in embed.title
-    await interaction.response.send_message(embed=embed, ephemeral=is_error)
+    if not role_to_buy:
+        await ctx.send(embed=create_error_embed("Error", f"El rol **{role_name}** no está a la venta."), delete_after=10)
+        return
+
+    if role_to_buy in ctx.author.roles:
+        await ctx.send(embed=create_error_embed("Error", f"Ya tienes el rol **{role_to_buy.name}**."), delete_after=10)
+        return
+
+    user_balance = get_balance(ctx.author.id, ctx.guild.id)
+    if user_balance < price:
+        await ctx.send(embed=create_error_embed("Error", f"No tienes suficiente dinero. Necesitas **{price} 💰**."), delete_after=10)
+        return
+
+    try:
+        update_balance(ctx.author.id, ctx.guild.id, -price)
+        await ctx.author.add_roles(role_to_buy, reason="Compra de rol en la tienda.")
+        new_balance = get_balance(ctx.author.id, ctx.guild.id)
+
+        await ctx.send(embed=create_success_embed("Compra Exitosa", f"Has comprado el rol **{role_to_buy.name}** por **{price} 💰**. Saldo restante: {new_balance} 💰"))
+    except discord.Forbidden:
+        await ctx.send(embed=create_error_embed("Error de Permisos", "No puedo darte ese rol (puede que el rol esté por encima del mío)."), delete_after=10)
+
 
 # ----------------------------------------------------
 # 11. INICIO DEL BOT + SERVIDOR WEB PARA RENDER
@@ -1490,5 +1334,3 @@ if __name__ == '__main__':
             print("ERROR: Token inválido o problema de conexión. Revisa tu Token.")
         except Exception as e:
             print(f"Ocurrió un error inesperado al iniciar el bot: {e}")
-            
-  #v1.4
