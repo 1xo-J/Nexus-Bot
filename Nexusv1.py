@@ -9,6 +9,10 @@ import asyncio
 from typing import Optional
 import os
 
+# --- NUEVO: IMPORTACIONES PARA MANTENER EL BOT VIVO EN RENDER ---
+from flask import Flask
+from threading import Thread
+
 # ----------------------------------------------------
 # 1. CLASE DE AYUDA PERSONALIZADA
 # ----------------------------------------------------
@@ -1293,25 +1297,40 @@ async def buyrole(ctx, *, role_name: str):
 
 
 # ----------------------------------------------------
-# 11. INICIO DEL BOT
+# 11. INICIO DEL BOT + SERVIDOR WEB PARA RENDER
 # ----------------------------------------------------
+
+# Definir la aplicación Flask para el "Keep Alive"
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "¡Hola! Soy Nexus Bot y estoy funcionando correctamente en Render."
+
+def run():
+    # Render asigna el puerto en la variable de entorno 'PORT'
+    # Si no la encuentra, usa el puerto 8080 por defecto
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
 
 if __name__ == '__main__':
     TOKEN = os.getenv('DISCORD_TOKEN') 
+    
     if not TOKEN:
          print("¡ADVERTENCIA! La variable DISCORD_TOKEN no está configurada. El bot no se conectará.")
-    elif OWNER_ID == 00000000000000:
-        print("¡ADVERTENCIA! Por favor, reemplaza '00000000000' con tu ID de usuario en la línea OWNER_ID.")
+    else:
+        print("Iniciando servidor web Keep-Alive...")
+        keep_alive()
+        
     
-else:
-    
-
-    print("Conectando el bot a Discord...")
-    try:
-        bot.run(TOKEN)
-    except discord.HTTPException:
-        print("ERROR: Token inválido o problema de conexión. Revisa tu Token.")
-    except Exception as e:
-        print(f"Ocurrió un error inesperado al iniciar el bot: {e}")
-
-#Codigo hecho por ReynDev - lildevreyn
+        print("Conectando el bot a Discord...")
+        try:
+            bot.run(TOKEN)
+        except discord.HTTPException:
+            print("ERROR: Token inválido o problema de conexión. Revisa tu Token.")
+        except Exception as e:
+            print(f"Ocurrió un error inesperado al iniciar el bot: {e}")
