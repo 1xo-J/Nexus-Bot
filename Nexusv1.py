@@ -9,58 +9,7 @@ import asyncio
 from typing import Optional
 import os
 from flask import Flask  # Para mantener el bot vivo en Render
-import yt_dlp
 
-# ----------------------------------------------------
-# 1. YTDL y FFMPEG Opciones
-# ----------------------------------------------------
-
-ytdl_format_options = {
-    'format': 'bestaudio/best',
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-    'restrictfilenames': True,
-    'noplaylist': True,
-    'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': True,
-    'no_warnings': True,
-    'default_search': 'auto',
-    'source_address': '0.0.0.0',  # bind to ipv4 since ipv6 addresses cause issues sometimes
-}
-
-ffmpeg_options = {
-    'options': '-vn',
-}
-
-ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
-
-music_queues = {}
-
-class YTDLSource(discord.PCMVolumeTransformer):
-    def __init__(self, source, *, data, volume=0.5):
-        super().__init__(source, volume)
-        self.data = data
-        self.title = data.get('title')
-        self.url = data.get('url')
-
-    @classmethod
-    async def from_url(cls, url, *, loop=None, stream=False):
-        loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
-        if 'entries' in data:
-            data = data['entries'][0]
-        filename = data['url'] if stream else ytdl.prepare_filename(data)
-        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
-
-def play_next(ctx):
-    if len(music_queues[ctx.guild.id]) > 0:
-        source = music_queues[ctx.guild.id].pop(0)
-        ctx.voice_client.play(source, after=lambda x: play_next(ctx))
-        asyncio.run_coroutine_threadsafe(ctx.send(f"Ahora reproduciendo: **{source.title}**"), bot.loop)
-    else:
-        asyncio.run_coroutine_threadsafe(ctx.voice_client.disconnect(), bot.loop)
-        
 # ----------------------------------------------------
 # 1. CLASE DE AYUDA PERSONALIZADA
 # ----------------------------------------------------
@@ -539,42 +488,15 @@ async def on_message_delete(message: discord.Message):
 
 @bot.hybrid_command(name='play', aliases=['p'], description="Reproduce música en el canal de voz.")
 async def play(ctx, *, search: str):
-    if ctx.author.voice is None:
-        return await ctx.send("No estás en un canal de voz.")
-
-    if ctx.voice_client is None:
-        await ctx.author.voice.channel.connect()
-    else:
-        await ctx.voice_client.move_to(ctx.author.voice.channel)
-
-    if ctx.guild.id not in music_queues:
-        music_queues[ctx.guild.id] = []
-
-    # If the search is not a URL, perform a YouTube search.
-    if not search.startswith('http'):
-        search = f"ytsearch:{search}"
-
-    player = await YTDLSource.from_url(search, loop=bot.loop, stream=True)
-    
-    if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-        music_queues[ctx.guild.id].append(player)
-        await ctx.send(f'**{player.title}** ha sido añadido a la cola.')
-    else:
-        ctx.voice_client.play(player, after=lambda x: play_next(ctx))
-        await ctx.send(f"Ahora reproduciendo: **{player.title}**")
+    await ctx.send(embed=create_error_embed("Función no Implementada", "La funcionalidad de música aún no está disponible."))
 
 @bot.hybrid_command(name='stop', description="Detiene la música y desconecta al bot.")
 async def stop(ctx):
-    if ctx.voice_client:
-        await ctx.voice_client.disconnect()
-        music_queues[ctx.guild.id] = []
-        await ctx.send("Reproducción detenida y el bot ha sido desconectado.")
+    await ctx.send(embed=create_error_embed("Función no Implementada", "La funcionalidad de música aún no está disponible."))
 
 @bot.hybrid_command(name='skip', aliases=['s'], description="Salta la canción actual.")
 async def skip(ctx):
-    if ctx.voice_client and ctx.voice_client.is_playing():
-        ctx.voice_client.stop()
-        await ctx.send("Canción saltada.")
+    await ctx.send(embed=create_error_embed("Función no Implementada", "La funcionalidad de música aún no está disponible."))
 
 
 @bot.command(name="sync")
@@ -979,7 +901,7 @@ async def invite(ctx: commands.Context):
     )
     embed.set_thumbnail(url=ctx.bot.user.display_avatar.url)
     embed.set_footer(text="¡Gracias por tu apoyo! 💖")
-    await ctx.send(embed=embed, ephemeral=True)
+    await ctx.send(embed=embed)
 
 
 @bot.hybrid_command(name='balance', aliases=['bal'], description="Muestra tu saldo o el de otro usuario.")
