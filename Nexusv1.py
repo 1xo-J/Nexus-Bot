@@ -386,7 +386,7 @@ def get_marriage_data(user_id: int, guild_id: int) -> Optional[tuple[int, int, s
             return cursor.fetchone()
 
 CLIENT_ID_INVITE = "1443693871061008457"
-PERMISSION_CODE_INVITE = 8
+PERMISSION_CODE_INVITE = 2422992118
 
 def generate_invite_link(client_id: str, permissions: int) -> str:
     """Genera el enlace de invitación para el bot."""
