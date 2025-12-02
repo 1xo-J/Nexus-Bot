@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-import psycopg2  # Reemplaza sqlite3
+import psycopg2
 import random
 import time
 from datetime import datetime, timedelta
