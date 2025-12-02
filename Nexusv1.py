@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-import psycopg2
+import psycopg2  # Reemplaza sqlite3
 import random
 import time
 from datetime import datetime, timedelta
@@ -398,11 +398,12 @@ async def on_ready():
     """Se ejecuta cuando el bot está listo y conectado a Discord."""
     print(f'Bot conectado como {bot.user.name} (ID: {bot.user.id})')
     initialize_db()
-    try:
-        await bot.tree.sync()
-        print("Comandos Slash sincronizados exitosamente.")
-    except Exception as e:
-        print(f"Error al sincronizar comandos Slash: {e}")
+    # La sincronización ahora se maneja manualmente con el comando /sync.
+    # try:
+    #     await bot.tree.sync()
+    #     print("Comandos Slash sincronizados exitosamente.")
+    # except Exception as e:
+    #     print(f"Error al sincronizar comandos Slash: {e}")
     check_mutes.start()
     if OWNER_ID != 1224791534436749354:
         owner = bot.get_user(OWNER_ID)
@@ -479,20 +480,48 @@ async def skip(ctx):
     await ctx.send(embed=create_error_embed("Música", "Este es un placeholder. Lógica: Saltar la canción actual."))
 
 
-@bot.command(name='sync')
-async def sync_commands(ctx):
-    if ctx.author.id != OWNER_ID:
-        await ctx.send(embed=create_error_embed("Permiso Denegado", "Solo el propietario del bot puede usar este comando."), ephemeral=True)
+@bot.hybrid_command(
+    name="sync",
+    description="Sincroniza los comandos de barra (slash commands) del bot."
+)
+@commands.is_owner()
+@discord.app_commands.describe(
+    scope="Elige 'global' para todos los servidores o 'local' para el servidor actual."
+)
+async def sync(ctx: commands.Context, scope: Optional[str] = 'local'):
+    """
+    Sincroniza los comandos de barra (slash commands) del bot.
+
+    Este es un comando híbrido, lo que significa que puedes usarlo con `!` o `/`.
+    - `!sync local` o `/sync scope:local`: Sincroniza los comandos solo para este servidor. Es la opción más rápida y recomendada para pruebas.
+    - `!sync global` o `/sync scope:global`: Sincroniza los comandos para todos los servidores donde está el bot. Este proceso puede tardar hasta una hora.
+    - `!sync`: Por defecto, usa el scope 'local'.
+    """
+    scope = scope.lower()
+    if scope not in ['global', 'local']:
+        await ctx.send(embed=create_error_embed(
+            "Scope Inválido",
+            "Por favor, elige 'local' o 'global'."
+        ), ephemeral=True)
         return
-    try:
+
+    if scope == 'local':
+        if ctx.guild is None:
+            await ctx.send(embed=create_error_embed(
+                "Error",
+                "El scope 'local' solo se puede usar dentro de un servidor."
+            ), ephemeral=True)
+            return
+        
+        bot.tree.copy_global_to(guild=ctx.guild)
+        synced = await bot.tree.sync(guild=ctx.guild)
+        message = f"Se han sincronizado **{len(synced)}** comandos para este servidor."
+    else: # scope == 'global'
         synced = await bot.tree.sync()
-        embed = create_success_embed(
-            "Sincronización Manual Completa ✅",
-            f"Se han sincronizado **{len(synced)}** comandos. Por favor, reinicia Discord (CTRL+R) para verlos."
-        )
-        await ctx.send(embed=embed)
-    except Exception as e:
-        await ctx.send(embed=create_error_embed("Error de Sincronización", f"No se pudieron sincronizar los comandos. Razón: `{e}`"))
+        message = f"Se han sincronizado **{len(synced)}** comandos globalmente. Puede tardar hasta una hora en reflejarse."
+
+    embed = create_success_embed("Sincronización Completa", message)
+    await ctx.send(embed=embed, ephemeral=True)
 
 
 @bot.tree.command(name='mod-ban', description='🔨 Banea a un usuario del servidor.')
